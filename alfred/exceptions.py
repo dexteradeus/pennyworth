@@ -1,0 +1,3 @@
+
+class AlfredError(Exception):
+    pass
