@@ -12,6 +12,7 @@ class AlfredClient(object):
     def __init__(self, sock='/var/run/alfred.sock'):
         self.sock_path = sock
         self._connected = False
+        self.src_mac = bytes(6)
 
     def _connect(self):
         self.sock = socket.socket(socket.AF_UNIX)
@@ -68,3 +69,23 @@ class AlfredClient(object):
         struct.pack_into('!H', request, 5, tx_id)
         return self._send_recv(request, tx_id)
 
+    @disconnect
+    def send_data(self, data_type, data, version=0):
+        data_type = validate_int(data_type)
+        data = validate_bytes(data)
+        data_len = len(data)
+        update = bytearray([0 for _ in range(8)])
+        tx_id = get_random_id()
+        seq_num = 0
+        struct.pack_into('!B', update, 0, AlfredPacketType.PUSH_DATA)
+        struct.pack_into('!B', update, 1, AlfredVersion.v0)
+        struct.pack_into('!H', update, 2, 14+data_len)
+        struct.pack_into('!H', update, 4, tx_id)
+        struct.pack_into('!H', update, 6, seq_num)
+        payload = self.src_mac
+        payload += struct.pack('!B', data_type)
+        payload += struct.pack('!B', version)
+        payload += struct.pack('!H', data_len)
+        payload += data
+        push_data = bytes(update) + payload
+        self._send(push_data)
