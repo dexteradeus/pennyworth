@@ -5,6 +5,21 @@ from random import randint
 def get_random_id():
     return randint(0, 2**16)
 
+def validate_int(val):
+    try:
+        val = int(val)
+    except ValueError:
+        raise ValueError('Invalid value "{}". Must be integer.'.format(val))
+    return val
+
+def validate_bytes(val):
+    try:
+        val = bytes(val)
+    except ValueError:
+        raise ValueError('Invalid value "{}". Must be of type bytes or '
+            'equivalent'.format(val))
+    return val
+
 def disconnect(fn):
     @wraps(fn)
     def wrapper(self, *args, **kwargs):

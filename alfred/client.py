@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division,
 from builtins import *
 import struct
 import socket
-from .util import get_random_id
+from .util import get_random_id, validate_int, validate_bytes
 from .packet import AlfredVersion, AlfredPacketType
 from .exceptions import AlfredError
 
@@ -61,9 +61,3 @@ class AlfredClient(object):
         struct.pack_into('!H', request, 5, tx_id)
         return self.send_recv(request, tx_id)
 
-def validate_int(val):
-    try:
-        val = int(val)
-    except ValueError:
-        raise ValueError('Invalid value "{}". Must be integer.'.format(val))
-    return val
