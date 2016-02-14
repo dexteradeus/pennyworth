@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dexteradeus/pennyworth.svg?branch=master)](https://travis-ci.org/dexteradeus/pennyworth)
+
 # Pennyworth
 
 Python interaction with an Alfred (Almighty Lightweight Fact Remote Exchange Daemon) server
