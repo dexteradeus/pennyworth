@@ -29,13 +29,13 @@ class AlfredClient(object):
 
     def _send_recv(self, data, tx_id):
         self._send(data)
-        tlv_hdr = self.sock.recv(4)
+        tlv_hdr = bytes(self.sock.recv(4))
         if not tlv_hdr:
             return None
         tlv_type = tlv_hdr[0]
         tlv_ver = tlv_hdr[1]
         tlv_len = struct.unpack('!H', tlv_hdr[2:4])[0]
-        trans_hdr = self.sock.recv(4)
+        trans_hdr = bytes(self.sock.recv(4))
         trans_id = struct.unpack('!H', trans_hdr[0:2])[0]
         trans_seq = struct.unpack('!H', trans_hdr[2:4])[0]
         if tlv_type == AlfredPacketType.STATUS_TXEND:
@@ -43,7 +43,7 @@ class AlfredClient(object):
                 raise AlfredError('Error received from server')
         elif tlv_type != AlfredPacketType.PUSH_DATA or trans_id != tx_id:
             raise AlfredError('Invalid response received from server')
-        recv_data = self.sock.recv(tlv_len-4)
+        recv_data = bytes(self.sock.recv(tlv_len-4))
         src_mac = recv_data[0:6]
         data_type = recv_data[6]
         data_ver = recv_data[7]
