@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division,
 from builtins import *
 import struct
 import socket
-from .util import get_random_id, validate_int, validate_bytes
+from .util import get_random_id, validate_int, validate_bytes, disconnect
 from .packet import AlfredVersion, AlfredPacketType
 from .exceptions import AlfredError
 
@@ -13,15 +13,22 @@ class AlfredClient(object):
         self.sock_path = sock
         self._connected = False
 
-    def connect(self):
+    def _connect(self):
         self.sock = socket.socket(socket.AF_UNIX)
         self.sock.connect(self.sock_path)
         self._connected = True
 
-    def send_recv(self, data, tx_id):
+    def _disconnect(self):
+        self.sock.close()
+        self._connected = False
+
+    def _send(self, data):
         if not self._connected:
-            self.connect()
+            self._connect()
         self.sock.sendall(bytes(data))
+
+    def _send_recv(self, data, tx_id):
+        self._send(data)
         tlv_hdr = self.sock.recv(4)
         if not tlv_hdr:
             return None
@@ -46,10 +53,10 @@ class AlfredClient(object):
             raise AlfredError('Failed to receive all data from server. '
                 'Received {} bytes. Should have received {}'.format(len(data),
                 data_len))
-        self.sock.close()
         src_mac = ':'.join(['{:02x}'.format(x) for x in src_mac])
         return src_mac, data
 
+    @disconnect
     def request_data(self, data_type):
         data_type = validate_int(data_type)
         request = bytearray([0 for _ in range(7)])
@@ -59,5 +66,5 @@ class AlfredClient(object):
         struct.pack_into('!H', request, 2, 3)
         struct.pack_into('!B', request, 4, data_type)
         struct.pack_into('!H', request, 5, tx_id)
-        return self.send_recv(request, tx_id)
+        return self._send_recv(request, tx_id)
 
