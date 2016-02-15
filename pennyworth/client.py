@@ -6,7 +6,7 @@ import struct
 import socket
 from .util import get_random_id, validate_int, validate_bytes, disconnect
 from .packet import AlfredVersion, AlfredPacketType
-from .exceptions import AlfredError
+from .exceptions import *
 
 class AlfredClient(object):
     def __init__(self, sock='/var/run/alfred.sock'):
@@ -43,7 +43,7 @@ class AlfredClient(object):
             if trans_seq == 1:
                 raise AlfredError('Error received from server')
         elif tlv_type != AlfredPacketType.PUSH_DATA or trans_id != tx_id:
-            raise AlfredError('Invalid response received from server')
+            raise AlfredInvalidResponse('Invalid response received from server')
         recv_data = bytes(self.sock.recv(tlv_len-4))
         src_mac = recv_data[0:6]
         data_type = recv_data[6]
@@ -51,7 +51,7 @@ class AlfredClient(object):
         data_len = struct.unpack('!H', recv_data[8:10])[0]
         data = recv_data[10:]
         if len(data) != data_len:
-            raise AlfredError('Failed to receive all data from server. '
+            raise AlfredDataError('Failed to receive all data from server. '
                 'Received {} bytes. Should have received {}'.format(len(data),
                 data_len))
         src_mac = ':'.join(['{:02x}'.format(x) for x in src_mac])
