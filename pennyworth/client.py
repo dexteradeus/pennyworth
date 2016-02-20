@@ -59,6 +59,13 @@ class AlfredClient(object):
 
     @disconnect
     def request_data(self, data_type):
+        """
+        Request data from the Alfred server of the given data type
+
+        Params:
+        data_type : integer of the type of data requested (0-255)
+
+        """
         data_type = validate_int(data_type)
         request = bytearray([0 for _ in range(7)])
         tx_id = get_random_id()
@@ -71,6 +78,14 @@ class AlfredClient(object):
 
     @disconnect
     def send_data(self, data_type, data, version=0):
+        """
+        Set data in the Alfred cloud for the given data type
+
+        Params:
+        data_type : integer of the type of data to be set (0-255)
+        data : byte string of the data
+        version : optional version to set for this data (default = 0)
+        """
         data_type = validate_int(data_type)
         data = validate_bytes(data)
         data_len = len(data)
