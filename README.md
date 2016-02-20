@@ -6,11 +6,25 @@ Python interaction with an Alfred (Almighty Lightweight Fact Remote Exchange Dae
 
 ## Installation
 
-TODO: Describe the installation process
+    python setup.py install
 
 ## Usage
 
-TODO: Write usage instructions
+To request data from the Alfred Server:
+
+    from pennyworth import client
+    c = client.AlfredClient()
+    data = c.request_data(153)
+
+To set data in the Alfred cloud:
+
+    from pennyworth import client
+    c = client.AlfredClient()
+    data = c.send_data(153, b'this is some data')
+
+You can also set the version number of the data:
+
+    data = c.send_data(153, b'this is some new data', version=2)
 
 ## Contributing
 
