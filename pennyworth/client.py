@@ -31,31 +31,33 @@ class AlfredClient(object):
     def _send_recv(self, data, tx_id):
         self._send(data)
         tlv_hdr = bytes(self.sock.recv(4))
-        if not tlv_hdr:
-            return None
-        tlv_type = tlv_hdr[0]
-        tlv_ver = tlv_hdr[1]
-        tlv_len = struct.unpack('!H', tlv_hdr[2:4])[0]
-        trans_hdr = bytes(self.sock.recv(4))
-        trans_id = struct.unpack('!H', trans_hdr[0:2])[0]
-        trans_seq = struct.unpack('!H', trans_hdr[2:4])[0]
-        if tlv_type == AlfredPacketType.STATUS_TXEND:
-            if trans_seq == 1:
-                raise AlfredError('Error received from server')
-        elif tlv_type != AlfredPacketType.PUSH_DATA or trans_id != tx_id:
-            raise AlfredInvalidResponse('Invalid response received from server')
-        recv_data = bytes(self.sock.recv(tlv_len-4))
-        src_mac = recv_data[0:6]
-        data_type = recv_data[6]
-        data_ver = recv_data[7]
-        data_len = struct.unpack('!H', recv_data[8:10])[0]
-        data = recv_data[10:]
-        if len(data) != data_len:
-            raise AlfredDataError('Failed to receive all data from server. '
-                'Received {} bytes. Should have received {}'.format(len(data),
-                data_len))
-        src_mac = ':'.join(['{:02x}'.format(x) for x in src_mac])
-        return src_mac, data
+        ret_data = {}
+        while tlv_hdr:
+            tlv_type = tlv_hdr[0]
+            tlv_ver = tlv_hdr[1]
+            tlv_len = struct.unpack('!H', tlv_hdr[2:4])[0]
+            trans_hdr = bytes(self.sock.recv(4))
+            trans_id = struct.unpack('!H', trans_hdr[0:2])[0]
+            trans_seq = struct.unpack('!H', trans_hdr[2:4])[0]
+            if tlv_type == AlfredPacketType.STATUS_TXEND:
+                if trans_seq == 1:
+                    raise AlfredError('Error received from server')
+            elif tlv_type != AlfredPacketType.PUSH_DATA or trans_id != tx_id:
+                raise AlfredInvalidResponse('Invalid response received from server')
+            recv_data = bytes(self.sock.recv(tlv_len-4))
+            src_mac = recv_data[0:6]
+            data_type = recv_data[6]
+            data_ver = recv_data[7]
+            data_len = struct.unpack('!H', recv_data[8:10])[0]
+            data = recv_data[10:]
+            if len(data) != data_len:
+                raise AlfredDataError('Failed to receive all data from server. '
+                    'Received {} bytes. Should have received {}'.format(len(data),
+                    data_len))
+            src_mac = ':'.join(['{:02x}'.format(x) for x in src_mac])
+            ret_data[src_mac] = data
+            tlv_hdr = bytes(self.sock.recv(4))
+        return ret_data
 
     @disconnect
     def request_data(self, data_type):
