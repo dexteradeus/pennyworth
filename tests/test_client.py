@@ -14,6 +14,7 @@ sock_path = os.path.join(dir_path, 'tmp.sock')
 
 
 class TestClient(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
         try:
@@ -33,13 +34,15 @@ class TestClient(unittest.TestCase):
         self.client = client.AlfredClient(sock_path)
 
     def test_request(self):
-        ret = self.client.request_data(153)
-        self.assertEqual(ret[0], 'aa:bb:cc:dd:ee:ff')
-        self.assertEqual(ret[1], b'\x01\x02\x03\x04\x05\x06')
+        requested_data = self.client.request_data(153)
+        self.assertEqual(len(requested_data), 1)
+        expected_dict = {'aa:bb:cc:dd:ee:ff': b'\x01\x02\x03\x04\x05\x06'}
+        self.assertDictEqual(requested_data, expected_dict)
 
     def test_request_no_data(self):
-        ret = self.client.request_data(255)
-        self.assertIsNone(ret)
+        requested_data = self.client.request_data(255)
+        expected_dict = {}
+        self.assertDictEqual(requested_data, expected_dict)
 
     def test_request_error(self):
         with self.assertRaises(AlfredError):
