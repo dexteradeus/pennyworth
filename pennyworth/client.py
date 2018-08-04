@@ -43,7 +43,8 @@ class AlfredClient(object):
                 if trans_seq == 1:
                     raise AlfredError('Error received from server')
             elif tlv_type != AlfredPacketType.PUSH_DATA or trans_id != tx_id:
-                raise AlfredInvalidResponse('Invalid response received from server')
+                raise AlfredInvalidResponse(
+                    'Invalid response received from server')
             recv_data = bytes(self.sock.recv(tlv_len-4))
             src_mac = recv_data[0:6]
             data_type = recv_data[6]
@@ -52,8 +53,8 @@ class AlfredClient(object):
             data = recv_data[10:]
             if len(data) != data_len:
                 raise AlfredDataError('Failed to receive all data from server. '
-                    'Received {} bytes. Should have received {}'.format(len(data),
-                    data_len))
+                    'Received {} bytes. Should have received {}'
+                    .format(len(data), data_len))
             src_mac = ':'.join(['{:02x}'.format(x) for x in src_mac])
             ret_data[src_mac] = data
             tlv_hdr = bytes(self.sock.recv(4))
